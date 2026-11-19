@@ -59,3 +59,13 @@ All file extensions are accepted. Text files are decoded as UTF-8. Binary files 
 ## PDF engine loading troubleshooting
 
 The app tries jsPDF from three CDN locations (cdnjs, jsDelivr, and unpkg). A working internet connection is required unless you add a local copy of `jspdf.umd.min.js` and reference it from `index.html`. If all CDNs are blocked by the network, browser, antivirus, or an extension, PDF generation cannot start. Try another network or allow these CDN scripts.
+
+
+## V4 PDF layout fix
+
+Code lines are now wrapped using jsPDF's measured Courier font width. The PDF renderer no longer applies a second automatic wrap, which could cause long TypeScript/JavaScript lines to overlap subsequent lines. Line numbers are placed in a separate gutter and continuation lines align with the code text.
+
+
+## V5 interface refresh
+
+The interface has been redesigned with a more polished dark workspace, refined typography, clearer import/organize/export sections, improved responsive layouts, updated upload visuals, and more legible file rows. Existing upload, preview, reorder, and PDF-generation behavior is retained.

@@ -3,8 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#10131b">
-  <title>PyDoc Studio | Python to PDF</title>
+  <meta name="theme-color" content="#0b1020">
+  <meta name="description" content="Collect source code and text files into one beautifully formatted PDF. Runs privately in your browser.">
+  <title>PyDoc Studio | Code & File Collection</title>
   <link rel="stylesheet" href="styles.css">
   <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
@@ -15,35 +16,36 @@
   <div class="app-shell">
     <header class="topbar">
       <a class="brand" href="#" aria-label="PyDoc Studio home">
-        <span class="brand-mark">Py</span>
-        <span>PyDoc <b>Studio</b><small>CODE COLLECTION BUILDER</small></span>
+        <span class="brand-mark"><span>PD</span></span>
+        <span>PyDoc <b>Studio</b><small>CODE & FILE DOCUMENT BUILDER</small></span>
       </a>
-      <div class="top-pill"><span class="status-dot"></span> Runs locally in your browser</div>
+      <div class="top-pill"><span class="status-dot"></span><span>Private local processing</span><span class="pill-divider"></span><span class="pill-label">NO ACCOUNT REQUIRED</span></div>
     </header>
 
     <main>
       <section class="hero">
-        <div class="eyebrow">PYTHON FILES · ONE DOCUMENT</div>
-        <h1>Your code, collected<br><span>into one clean PDF.</span></h1>
-        <p>Upload dozens or hundreds of Python files. Keep their content, indentation and line order, then export one organized document.</p>
+        <div class="hero-kicker"><span class="hero-kicker-line"></span> THE DOCUMENT WORKSPACE</div>
+        <h1>All your files.<br><span>One polished document.</span></h1>
+        <p>Bring source code and project files together in a single, organized PDF. Review, arrange and export everything from one private workspace.</p>
+        <div class="hero-tags"><span>✦ Any file extension</span><span>↕ Reorder before export</span><span>◈ Processed in your browser</span></div>
       </section>
 
       <section class="workspace">
         <div class="section-heading">
-          <div><h2>Upload your files</h2><p>Choose any files or drop them below.</p></div>
+          <div><div class="section-kicker">01 / IMPORT</div><h2>Build your collection</h2><p>Add individual files or drag a batch into the workspace.</p></div>
           <button id="chooseBtn" class="button button-secondary" type="button">＋ Select files</button>
           <input id="fileInput" type="file"  multiple hidden>
         </div>
 
-        <div id="dropZone" class="drop-zone" tabindex="0" role="button" aria-label="Choose or drop Python files">
-          <div class="upload-icon">↑</div>
-          <h3>Drop your files here</h3>
-          <p>or <button id="browseBtn" class="text-button" type="button">browse your computer</button></p>
-          <span>ALL FILE TYPES &nbsp;|&nbsp; Multiple files supported</span>
+        <div id="dropZone" class="drop-zone" tabindex="0" role="button" aria-label="Choose or drop files">
+          <div class="upload-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4m0 0L7.5 8.5M12 4l4.5 4.5M4 15.5v3A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5v-3"/></svg></div>
+          <h3>Drag and drop files to upload</h3>
+          <p>or <button id="browseBtn" class="text-button" type="button">browse files</button> from your device</p>
+          <span>ALL FILE TYPES SUPPORTED <i></i> MULTIPLE FILES AT ONCE</span>
         </div>
 
         <div class="list-toolbar">
-          <div class="file-count"><strong id="fileCount">0 files</strong><span id="totalSize"> · 0 KB</span></div>
+          <div class="list-title"><div class="section-kicker">02 / ORGANIZE</div><div class="file-count"><strong id="fileCount">0 files</strong><span id="totalSize"> · 0 KB</span></div></div>
           <div class="toolbar-actions">
             <input id="searchInput" class="search" type="search" placeholder="Search filenames…" aria-label="Search filenames">
             <button id="clearBtn" class="quiet-button" type="button" disabled>Clear all</button>
@@ -59,12 +61,12 @@
 
         <div class="export-panel">
           <div class="export-copy">
-            <div class="export-icon">PDF</div>
-            <div><strong>Ready to build your document?</strong><p>Each file gets a bold title. Code is rendered in a monospaced font with spacing and line order preserved.</p></div>
+            <div class="export-icon"><span>PDF</span><small>EXPORT</small></div>
+            <div><div class="section-kicker">03 / EXPORT</div><strong>Ready to create your PDF?</strong><p>Files receive clear headings, readable code formatting and consistent page layout.</p></div>
           </div>
           <div class="export-actions">
             <label class="option-label"><input id="lineNumbers" type="checkbox"> Include line numbers</label>
-            <button id="generateBtn" class="button button-primary" type="button" disabled>Generate PDF <span>↗</span></button>
+            <button id="generateBtn" class="button button-primary" type="button" disabled><span>Create PDF</span><b>↗</b></button>
           </div>
         </div>
         <div id="progressWrap" class="progress-wrap" hidden>
@@ -75,12 +77,12 @@
       </section>
 
       <section class="details-grid">
-        <article><span class="detail-number">01</span><h3>Readable code layout</h3><p>Bold file headings, monospaced code, preserved blank lines and indentation.</p></article>
-        <article><span class="detail-number">02</span><h3>One file, one starting page</h3><p>Every file begins on a fresh page. Long files continue naturally across pages.</p></article>
-        <article><span class="detail-number">03</span><h3>Private by design</h3><p>Files are read and processed on your device. Nothing is uploaded to a server.</p></article>
+        <article><span class="detail-number">01</span><div class="detail-icon">Aa</div><h3>Clean, readable output</h3><p>Distinct file headings, monospaced content and carefully managed line wrapping.</p></article>
+        <article><span class="detail-number">02</span><div class="detail-icon">▤</div><h3>One combined PDF</h3><p>Each file starts on a new page, with long documents continuing across pages.</p></article>
+        <article><span class="detail-number">03</span><div class="detail-icon">◇</div><h3>Private by design</h3><p>Your files stay in your browser. They are not uploaded to a PyDoc Studio server.</p></article>
       </section>
     </main>
-    <footer><span>PyDoc Studio</span><span>Made for tidy code archives.</span></footer>
+    <footer><span>© PyDoc Studio <i>·</i> A focused workspace for your files.</span><span><b class="footer-dot"></b> Local processing enabled</span></footer>
   </div>
 
   <div id="previewModal" class="modal" hidden>

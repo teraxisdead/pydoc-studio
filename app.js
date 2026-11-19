@@ -126,18 +126,35 @@
   els.modal.addEventListener("click",e=>{if(e.target.dataset.close)closePreview();});
   document.addEventListener("keydown",e=>{if(e.key==="Escape")closePreview();});
 
-  function wrapCodeLine(line, maxChars) {
-    if(line.length<=maxChars) return [line];
-    const chunks=[];
-    let rest=line;
-    while(rest.length>maxChars){
-      let cut=rest.lastIndexOf(" ",maxChars);
-      if(cut<Math.floor(maxChars*.45)) cut=maxChars;
-      chunks.push(rest.slice(0,cut));
-      rest=rest.slice(cut);
+  // Wrap using the PDF font's actual measured width, not an estimated character count.
+  // This prevents jsPDF from silently wrapping a second time and painting over the next line.
+  function wrapCodeLineByWidth(line, maxWidth, doc) {
+    if (!line) return [""];
+    const parts = [];
+    let rest = line;
+    while (rest.length) {
+      if (doc.getTextWidth(rest) <= maxWidth) {
+        parts.push(rest);
+        break;
+      }
+      let low = 1, high = rest.length, fit = 1;
+      while (low <= high) {
+        const mid = Math.floor((low + high) / 2);
+        if (doc.getTextWidth(rest.slice(0, mid)) <= maxWidth) {
+          fit = mid;
+          low = mid + 1;
+        } else {
+          high = mid - 1;
+        }
+      }
+      let cut = fit;
+      const space = rest.lastIndexOf(" ", fit);
+      if (space > Math.floor(fit * 0.55)) cut = space + 1;
+      if (cut < 1) cut = fit;
+      parts.push(rest.slice(0, cut));
+      rest = rest.slice(cut);
     }
-    chunks.push(rest);
-    return chunks;
+    return parts.length ? parts : [""];
   }
   async function buildPdf() {
     if(!window.jspdf?.jsPDF){setMessage("PDF engine could not load from the available CDNs. Check internet access, disable script-blocking extensions for this page, or try another network, then reload.",true);return;}
@@ -147,7 +164,6 @@
     const pageW=210,pageH=297,left=17,right=15,top=19,bottom=17;
     const usableW=pageW-left-right;
     const codeFontSize=8.2,lineH=4.1;
-    const maxChars=Math.floor(usableW/(codeFontSize*0.1778));
     let pageHasContent=false;
     function footer(){
       const n=doc.internal.getNumberOfPages();
@@ -185,15 +201,25 @@
       doc.setFont("courier","normal");doc.setFontSize(codeFontSize);doc.setTextColor(35,39,48);
       const rawLines=f.content.replace(/\r\n/g,"\n").replace(/\r/g,"\n").split("\n");
       const showNums=$("lineNumbers").checked;
-      const numberWidth=showNums?9:0;
+      const numberGutter=showNums?12:0;
+      const codeX=left+numberGutter;
+      const codeW=usableW-numberGutter;
       rawLines.forEach((original,index)=>{
-        const prefix=showNums?`${String(index+1).padStart(4," ")}  `:"";
-        const line=prefix+original.replace(/\t/g,"    ");
-        const pieces=wrapCodeLine(line,Math.max(20,maxChars-(showNums?7:0)));
+        const line=original.replace(/\t/g,"    ");
+        const pieces=wrapCodeLineByWidth(line,codeW,doc);
         pieces.forEach((piece,pi)=>{
-          if(y>pageH-bottom){footer();doc.addPage();pageHasContent=true;y=top;doc.setFont("courier","normal");doc.setFontSize(codeFontSize);doc.setTextColor(35,39,48);}
-          // Use split text only for a single physical line so blank lines and ordering remain intact.
-          doc.text(piece.length?piece:" ",left+(pi>0?numberWidth:0),y,{maxWidth:usableW-(pi>0?numberWidth:0),renderingMode:"fill"});
+          if(y>pageH-bottom){
+            footer();doc.addPage();pageHasContent=true;y=top;
+            doc.setFont("courier","normal");doc.setFontSize(codeFontSize);doc.setTextColor(35,39,48);
+          }
+          if(showNums && pi===0){
+            doc.setFont("courier","normal");doc.setFontSize(7);doc.setTextColor(130,136,150);
+            doc.text(String(index+1),left+numberGutter-2,y,{align:"right"});
+            doc.setFont("courier","normal");doc.setFontSize(codeFontSize);doc.setTextColor(35,39,48);
+          }
+          // No maxWidth option here: each piece is already measured and wrapped.
+          // This avoids jsPDF's implicit second wrap, which caused overlapping lines.
+          doc.text(piece.length?piece:" ",codeX,y);
           y+=lineH;
         });
       });
