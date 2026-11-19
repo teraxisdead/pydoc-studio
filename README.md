@@ -4,12 +4,13 @@ A static, browser-based tool that combines many Python source files into one PDF
 
 ## Features
 
-- Bulk upload `.py`, `.pyw`, and `.txt` files
+- Bulk upload any file type (source code, documents, images, archives, compiled files, etc.)
 - Drag-and-drop upload
 - File list, filename search, preview, remove and reorder
 - One combined PDF with a cover page and included-file list
 - Large bold filename headings
-- Monospaced code text with indentation, blank lines and line order retained
+- Monospaced text with indentation, blank lines and line order retained
+- Binary files are represented as hexadecimal/ASCII dumps (first 2 MB per binary file)
 - Each file starts on a new page; long files flow onto additional pages
 - Optional line numbers
 - Local browser processing: file contents are not sent to a server
@@ -19,7 +20,7 @@ A static, browser-based tool that combines many Python source files into one PDF
 1. Download or clone this repository.
 2. Open `index.html` in a modern browser.
 3. Keep an internet connection available so the jsPDF library can load from its CDN.
-4. Upload files and select **Generate PDF**.
+4. Upload any files and select **Generate PDF**.
 
 For a local web server (optional), run this in the project folder:
 
@@ -48,3 +49,8 @@ Then open `http://localhost:8000`.
 - Each file starts on a new page after the cover/included-files page. A large collection can produce a large PDF.
 - The browser must remain open until the download finishes.
 - GitHub Pages hosts the app only. It does not store uploaded files or generated PDFs.
+
+
+## Binary files
+
+All file extensions are accepted. Text files are decoded as UTF-8. Binary files such as `.pyc`, `.exe`, `.png`, `.zip`, and `.pdf` are represented as hexadecimal/ASCII dumps because raw binary bytes are not ordinary readable text. Dumps are limited to the first 2 MB per binary file, with a truncation notice. This version does not decompile bytecode or extract text from images/PDFs.

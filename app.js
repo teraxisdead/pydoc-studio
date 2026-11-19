@@ -29,7 +29,7 @@
       row.draggable = true;
       row.dataset.index = file.index;
       row.innerHTML = `
-        <div class="file-type">PY</div>
+        <div class="file-type">${file.binary ? "BIN" : escapeHtml((file.name.split(".").pop() || "TXT").slice(0,4).toUpperCase())}</div>
         <div><div class="file-name" title="${escapeHtml(file.name)}">${escapeHtml(file.name)}</div><div class="file-meta">${formatSize(file.size)}</div></div>
         <button class="row-action preview-action" data-action="preview" data-index="${file.index}">Preview</button>
         <button class="row-action" data-action="up" data-index="${file.index}" title="Move up">↑</button>
@@ -53,24 +53,55 @@
     els.clear.disabled = !state.files.length;
     els.generate.disabled = !state.files.length;
   }
+  function looksBinary(bytes) {
+    const sample = bytes.subarray(0, Math.min(bytes.length, 8192));
+    if (sample.includes(0)) return true;
+    let unusual = 0;
+    for (const b of sample) {
+      if (b === 9 || b === 10 || b === 13 || b >= 32) continue;
+      unusual++;
+    }
+    return sample.length > 0 && unusual / sample.length > 0.12;
+  }
+  function hexDump(bytes) {
+    const lines = [];
+    for (let i = 0; i < bytes.length; i += 16) {
+      const chunk = bytes.subarray(i, i + 16);
+      const hex = Array.from(chunk, b => b.toString(16).padStart(2, "0")).join(" ").padEnd(47, " ");
+      const ascii = Array.from(chunk, b => b >= 32 && b <= 126 ? String.fromCharCode(b) : ".").join("");
+      lines.push(`${i.toString(16).padStart(8, "0")}  ${hex}  ${ascii}`);
+    }
+    return lines.join("\n");
+  }
   async function addFiles(fileList) {
     const incoming = Array.from(fileList || []);
-    const accepted = incoming.filter(f => /\.(py|pyw|txt)$/i.test(f.name));
-    const rejected = incoming.length-accepted.length;
     const existing = new Set(state.files.map(f=>`${f.name}:${f.size}:${f.lastModified}`));
     let added=0;
-    for (const file of accepted) {
+    for (const file of incoming) {
       const key=`${file.name}:${file.size}:${file.lastModified}`;
       if(existing.has(key)) continue;
       try {
-        const content=await file.text();
-        state.files.push({name:file.name,size:file.size,lastModified:file.lastModified,content});
+        const bytes = new Uint8Array(await file.arrayBuffer());
+        const binary = looksBinary(bytes);
+        let content;
+        if (binary) {
+          const MAX_BINARY_DUMP = 2 * 1024 * 1024;
+          const shown = bytes.subarray(0, Math.min(bytes.length, MAX_BINARY_DUMP));
+          content = `[BINARY FILE: ${file.name}]\nOriginal size: ${formatSize(file.size)} (${file.size} bytes)\nDisplayed as hexadecimal and ASCII bytes.\n\n${hexDump(shown)}`;
+          if (bytes.length > MAX_BINARY_DUMP) content += `\n\n[TRUNCATED: showing first ${MAX_BINARY_DUMP} bytes of ${bytes.length} total bytes.]`;
+        } else {
+          content = new TextDecoder("utf-8").decode(bytes);
+        }
+        state.files.push({name:file.name,size:file.size,lastModified:file.lastModified,content,binary});
         existing.add(key); added++;
-      } catch { setMessage(`Could not read ${file.name}.`,true); }
+      } catch (err) {
+        console.error("Unable to read file", file.name, err);
+        setMessage(`Could not read ${file.name}.`,true);
+      }
     }
     render();
-    if(added) setMessage(`Added ${added} file${added===1?"":"s"}${rejected?`; skipped ${rejected} unsupported file(s)`:""}.`);
-    else if(rejected) setMessage("No supported files found. Choose .py, .pyw or .txt files.",true);
+    if(added) setMessage(`Added ${added} file${added===1?"":"s"}. All file types are accepted; binary files are shown as a hex dump.`);
+    else setMessage("No new files were added. They may already be in the list.");
     els.input.value="";
   }
   els.choose.addEventListener("click",()=>els.input.click());
@@ -88,7 +119,7 @@
     const i=Number(btn.dataset.index), action=btn.dataset.action;
     if(action==="remove"){state.files.splice(i,1);render();setMessage("File removed.");}
     if(action==="up" && i>0){[state.files[i-1],state.files[i]]=[state.files[i],state.files[i-1]];render();}
-    if(action==="preview"){const f=state.files[i];els.previewTitle.textContent=f.name;els.previewContent.textContent=f.content;els.modal.hidden=false;}
+    if(action==="preview"){const f=state.files[i];els.previewTitle.textContent=f.name+(f.binary?" · binary hex view":"");els.previewContent.textContent=f.content;els.modal.hidden=false;}
   });
   function closePreview(){els.modal.hidden=true;}
   $("closePreview").addEventListener("click",closePreview);
@@ -149,6 +180,7 @@
       doc.setFont("helvetica","bold");doc.setFontSize(17);doc.setTextColor(36,39,52);
       const titleLines=doc.splitTextToSize(f.name,usableW);
       titleLines.forEach(line=>{doc.text(line,left,y);y+=7;});
+      if (f.binary) { doc.setFont("helvetica","normal"); doc.setFontSize(8); doc.setTextColor(145,91,50); doc.text("BINARY FILE · displayed as hexadecimal / ASCII",left,y); y+=5; }
       doc.setDrawColor(133,121,240);doc.setLineWidth(.8);doc.line(left,y+1,pageW-right,y+1);y+=9;
       doc.setFont("courier","normal");doc.setFontSize(codeFontSize);doc.setTextColor(35,39,48);
       const rawLines=f.content.replace(/\r\n/g,"\n").replace(/\r/g,"\n").split("\n");
