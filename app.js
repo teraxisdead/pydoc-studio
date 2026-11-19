@@ -140,7 +140,7 @@
     return chunks;
   }
   async function buildPdf() {
-    if(!window.jspdf?.jsPDF){setMessage("PDF library did not load. Check your internet connection and reload the page.",true);return;}
+    if(!window.jspdf?.jsPDF){setMessage("PDF engine could not load from the available CDNs. Check internet access, disable script-blocking extensions for this page, or try another network, then reload.",true);return;}
     els.generate.disabled=true;els.progress.hidden=false;setMessage("");
     const {jsPDF}=window.jspdf;
     const doc=new jsPDF({orientation:"portrait",unit:"mm",format:"a4",compress:true});

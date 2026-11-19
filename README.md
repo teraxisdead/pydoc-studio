@@ -54,3 +54,8 @@ Then open `http://localhost:8000`.
 ## Binary files
 
 All file extensions are accepted. Text files are decoded as UTF-8. Binary files such as `.pyc`, `.exe`, `.png`, `.zip`, and `.pdf` are represented as hexadecimal/ASCII dumps because raw binary bytes are not ordinary readable text. Dumps are limited to the first 2 MB per binary file, with a truncation notice. This version does not decompile bytecode or extract text from images/PDFs.
+
+
+## PDF engine loading troubleshooting
+
+The app tries jsPDF from three CDN locations (cdnjs, jsDelivr, and unpkg). A working internet connection is required unless you add a local copy of `jspdf.umd.min.js` and reference it from `index.html`. If all CDNs are blocked by the network, browser, antivirus, or an extension, PDF generation cannot start. Try another network or allow these CDN scripts.
